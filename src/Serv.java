@@ -1,30 +1,61 @@
-import java.sql.*;
-public class SQLiteConnection {
-	public static void main(String[] ar) {
-		String jdbcUrl = "jdbc:sqlite:/userdb.db";
+package com.data;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+@WebServlet("/Serv")
+public class Serv extends HttpServlet{
+	public void service(HttpServletRequest request,HttpServletResponse response) throws IOException,ServletException{
+		PrintWriter pw= response.getWriter();
+		pw.write("Connected");
+
 		try {
-			Connection con = DriverManager.getConnection(jdbcUrl);
-			String createStatement1 = "create table movies(movie_name varchar(20),hero varchar(20),heoine varchar(20))";
-			Statement s = con.createStatement();
-			s.execute(createStatement1);
-			PreparedStatement ps = con.prepareStatement("insert into movies(movie_name,hero,heroine) values(?,?,?);");
-			ps.setString(0, "RRR");
-			ps.setString(1, "NTR");
-			ps.setString(2, "Aliya");
-			
-			ps.executeUpdate();
-			Statement query = con.createStatement();
-			ResultSet rs = query.executeQuery("select * from movies;");
-			
-			while(rs.next()) {
-				System.out.println("Movie : "+rs.getString(0)+"Hero : "+rs.getString(1)+"Heroine : "+rs.getString(2));
+			Class.forName("com.mysql.jdbc.Driver");
+			Connection conn=DriverManager.getConnection("jdbc:mysql://localhost:3306/movies","root","system");
+			String val=request.getParameter("insert");
+			if(val!=null) {
+				String name=request.getParameter("name");
+				String actor=request.getParameter("actor");
+				String actress=request.getParameter("actress");
+				String director=request.getParameter("director");
+				String yor=request.getParameter("yor");
+				String query="insert into movies (name,actor,actress,director,year_of_release)"+" values(?,?,?,?,?)";
+				PreparedStatement stmt=conn.prepareStatement(query);
+				stmt.setString(1, name);
+				stmt.setString(2, actor);
+				stmt.setString(3, actress);
+				stmt.setString(4, director);
+				stmt.setString(5, yor);
+				stmt.execute();
+				pw.write("<p> Inserted Successfull! </p>");
 			}
-			
-		} 
-		catch (SQLException e) {
+			else {
+				Statement stm=conn.createStatement();
+				ResultSet rs=stm.executeQuery("select * from movies");
+				pw.write("<table border='2'>");
+				pw.write("<tr><td>Name</td><td>Actor</td><td>Actress</td><td>Director</td><td>Year_of_release</td></tr>");
+				while(rs.next()) {
+					pw.write("<tr><td>"+rs.getString(1)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3)+"</td><td>"+rs.getString(4)+"</td><td>"+rs.getString(5)+"</td></tr>");
+				}
+				pw.write("</table>");
+			}
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
+	
+	
 }
